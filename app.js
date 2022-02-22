@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 
 const errorController = require('./controllers/error');
 
-const mongoConnect = require('./util/database').mongoConnect
+const mongoose = require('mongoose')
 
 const User = require('./models/user')
 
@@ -22,9 +22,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use((req, res, next) => {
-    User.findById('62123d14cfc92f90e72a30c4')
+    User.findById('6213698464d0d3a1cd16207e')
     .then(user => {
-        req.user = new User(user.name, user.email, user.cart, user._id)
+        req.user = user
         next()
     })
     .catch(err => console.log(err))
@@ -35,7 +35,18 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect((client) => {
-    console.log(client);
-    app.listen(3000)
-})
+mongoose.connect('mongodb+srv://lalith:L%40ftie1806@cluster0.4hae3.mongodb.net/shop?retryWrites=true&w=majority')
+    .then(result => {
+        User.findOne().then(user => {
+            if(!user) {
+                const user = new User({
+                    name: 'Lalith',
+                    email: 'lalith@mail.com',
+                    cart: []
+                })
+                user.save()
+            }
+            app.listen(3000)
+        })
+    })
+    .catch(err => console.log(err))
