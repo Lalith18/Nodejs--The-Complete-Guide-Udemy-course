@@ -1,11 +1,12 @@
 const User = require('../models/user')
 const bcryptjs = require('bcryptjs')
+const crypto = require('crypto');
+const user = require('../models/user');
 
 exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    isAuthenticated: req.session.isLoggedIn,
     errorMessage: req.flash('error')[0]
   });
 };
@@ -51,7 +52,6 @@ exports.getSignup = (req, res, next) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false,
     errorMessage: req.flash('error')[0]
   });
 };
@@ -81,4 +81,69 @@ exports.postSignup = (req, res, next) => {
   .catch(err => console.log(err))
 };
 
+exports.getReset = (req, res, next) => {
+  res.render('auth/reset', {
+    path: '/reset',
+    pageTitle: 'Reset Password',
+    errorMessage: req.flash('error')[0]
+  });
+}
 
+exports.postReset = (req, res, next) => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if(err) {
+      console.log(err);
+      return res.redirect('/login')
+    }
+    const token = buffer.toString('hex')
+    User.findOne({email: req.body.email})
+      .then(user => {
+        if(!user) {
+          req.flash('error', 'Email doesnt exists')
+          return res.redirect('/login')
+        }
+        user.resetToken = token,
+        user.resetTokenExpiration = Date.now() + 3600000
+        return user.save()
+      })
+      .then(result => {
+        res.redirect(`/reset/${token}`)
+      })
+  })
+}
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token
+  User.findOne({resetToken: token, resetTokenExpiration: {$gt: Date.now()}})
+    .then(user => {
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage: req.flash('error')[0],
+        userId: user._id,
+        passwordToken: token
+      });
+    })
+    .catch(err => console.log(err))
+}
+
+exports.postNewPassword = (req, res, next) => {
+  const newPassword = req.body.password
+  const token = req.body.passwordToken
+  let resetUser
+  User.findOne({_id: req.body.userId, resetToken: token, resetTokenExpiration: {$gt: Date.now()}})
+    .then(user => {
+      resetUser = user
+      return bcryptjs.hash(newPassword, 12)
+    })
+    .then(hashedPassword => {
+      resetUser.password = hashedPassword
+      resetUser.resetToken = undefined
+      resetUser.resetTokenExpiration = undefined
+      return resetUser.save()
+    })
+    .then(result => {
+      res.redirect('/login')
+    })
+    .catch(err => console.log(err))
+}
