@@ -1,0 +1,30 @@
+{
+  "name": "nodejs--the-complete-guide-udemy-course",
+  "version": "1.0.0",
+  "description": "rest-api",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "express": "^4.18.1",
+    "multer": "^1.4.5-lts.1",
+    "pdfkit": "^0.13.0",
+    "stripe": "^9.16.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  },
+  "scripts": {
+    "test": "test",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lalith18/Nodejs--The-Complete-Guide-Udemy-course.git"
+  },
+  "author": "lalith",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lalith18/Nodejs--The-Complete-Guide-Udemy-course/issues"
+  },
+  "homepage": "https://github.com/Lalith18/Nodejs--The-Complete-Guide-Udemy-course#readme"
+}
